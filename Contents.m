@@ -7,8 +7,8 @@
 %
 % Main Function:
 %   EOF_Analysis  - Performs a full EOF Analysis of a data set. Uses a
-%   Rule N significance test and performs a Varimax rotation of significant
-%   modes.   
+%                   Rule N significance test and performs a Varimax rotation
+%                   of significant modes.   
 %
 % Figure Functions:
 %   EOFloadings  - Plots the loadings of data series on significant modes.
@@ -23,6 +23,11 @@
 %   scaleEigvecs - Scales the eigenvectors by the square root of the eigenvalues. Used for VARIMAX rotation.
 %   varimaxRotation - Performs a VARIMAX rotation on a set of scaled eigenvectors and eigenvalues.
 %
+% Helper Functions:
+%   hasNaN       - Tests if an N-dimensional array contains any NaN elements
+%   posColSign   - Reverses the sign of a vector if the majority of elements are negative        
+%   randNoiseSeries - Creates a random time series with specified noise properties 
+%
 % References:
 %   Deser, C., and M. L. Blackmon (1993), Surface climate variations over the
 %   North Atlantic Oceanduring winter:  1900-1989, Journal of Climate,6(9),
@@ -32,7 +37,7 @@
 %   Preisendorfer. Elsevier Science Publishers. New York, 1988.
 %
 % Written by: 
-%   Jonathan King (jonking93@email.arizona.edu)
+%   Jonathan King, University of Arizona (jonking93@email.arizona.edu)
 %
 % Acknowledgements:
 %   This work based on assignments and material from the course "Spatiotemporal Data Analysis",
