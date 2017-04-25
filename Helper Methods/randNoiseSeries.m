@@ -1,13 +1,13 @@
 function[randSeries] = randNoiseSeries(noiseType, Data, varargin)
 %% Build a matrix of random time series with desired noise properties given
-% an initial time series or matrix, and scales to the standard deviation of
+% an initial time series vector or matrix, and scales to the standard deviation of
 % the original data.
 %
-% [randSeries] = randNoiseSeries(ts, nSeries, noiseType)
-% If Data is a time series, constructs a matrix with nSeries artificial
+% [randSeries] = randNoiseSeries(noiseType, ts, nSeries)
+% If Data is a vector, constructs a matrix with nSeries artificial
 % time series with the desired noise properties.
 %
-% [randSeries] = randNoiseSeries(matrix, noiseType)
+% [randSeries] = randNoiseSeries(noiseType, matrix)
 % If Data is an m x n matrix, returns a matrix with n random series. Each
 % of the n series contains the desired noise properties of the analogous
 % series in Data.
