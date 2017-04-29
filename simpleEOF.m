@@ -40,6 +40,12 @@ function[eigVals, modes, expVar, Datax0, C] = simpleEOF(Data, matrix, varargin)
 %
 % C: The analysis matrix for the PCA. This may be the standardized data
 %       matrix, its covariance matrix, or its correlation matrix, as appropriate.
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
+
 
 % Get the inputs
 [svdArgs] = parseInputs(varargin{:});

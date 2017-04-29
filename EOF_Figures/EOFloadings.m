@@ -5,11 +5,17 @@ function[] = EOFloadings(EOF, names, rotType)
 %
 % EOF: the structure from an EOF_Analysis
 %
-% names: The names of each of the elements
+% names: The names of each of the Data elements
 %
 % rotType: a flag to use rotated vs unrotated modes
 %   'rotated': Use the rotated modes
 %   'unrotated': Use the unrotated modes
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
+
 
 if EOF.nSig > 0
     

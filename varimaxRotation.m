@@ -31,6 +31,11 @@ function[rotModes, varargout] = varimaxRotation(scaModes, varargin)
 % rotExpVar: The explained variance of the rotated eigenvalues.
 %
 % rotMatrix: The matrix used to perform the eigenvector rotation.
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
 % Parse the inputs, do some error checking
 [haveEigvals, haveExpVar, eigVals, expVar] = setup(scaModes, varargin{:});

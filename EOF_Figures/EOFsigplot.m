@@ -10,9 +10,13 @@ function[] = EOFsigplot(EOF, varargin)
 %
 % EOF: The output of the EOF_Analysis function
 %
-% *** Optional Inputs ***
-%
 % nEigs: The number of eignevectors to show in the plot. (Default = 10)
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
+
 
 
 figure(); clf; hold on;

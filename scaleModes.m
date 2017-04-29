@@ -15,6 +15,11 @@ function[scaledModes] = scaleModes(modes, eigVals)
 % ----- Outputs -----
 %
 % scaledModes: The scaled EOF modes
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
 % Error check and make eigVals a row vector
 [eigVals] = setup(modes, eigVals);

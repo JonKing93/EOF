@@ -16,6 +16,12 @@ function[scaSignals] = scaleSignals(signals, eigVals)
 %
 % scaSignals: The set of scaled signals. These signals may be plotted
 %   directly against the standardized dataset.
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
+
 
 errCheck(signals, eigVals);
 

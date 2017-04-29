@@ -109,6 +109,11 @@ function[s] = EOF_Analysis(Data, matrix, varargin)
 %
 %   metadata: Information concerning the settings used for the analysis.
 %       Contains: matrix, MC, noisetype, pval, and any additional flags.
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
 % Parse Inputs, all error checking will occur in called functions
 [MC, noiseType, pval, showProgress, svdArgs, blockMC, convergeTest] = parseInputs(varargin{:});

@@ -3,6 +3,12 @@ function[] = plotRuleN(s)
 %
 % -- In --
 % s: A structure from an EOF_Analysis
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
+
 
 % Plot the true confidence threshold
 figure();

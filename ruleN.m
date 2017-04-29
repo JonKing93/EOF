@@ -73,6 +73,11 @@ function[nSig, randEigSort, thresh, trueConf, varargout] = ...
 %
 % iterTrueConf: The true significance level of the threshold eigenvalues
 %       after each additional Monte Carlo iteration.
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
 % Inputs and error checking
 [showProgress, testConverge, svdArgs] = parseInputs(varargin{:});

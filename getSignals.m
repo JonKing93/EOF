@@ -17,6 +17,11 @@ function[signals] = getSignals(Datax0, modes)
 % signals: The signals that arise from redistributing the dataset over the modes.
 %       If all modes are used, no information is lost and the signals may 
 %       be used to completely reconstruct the original data.
+%
+%
+% ----- Written By -----
+% 
+% Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
 
 % Check for errors
