@@ -8,18 +8,20 @@ function[nSig, randEigSort, thresh, trueConf, varargout] = ...
 % convergence data.
 %
 % [...] = ruleN(..., showProgress)
-% Choose whether to display the current Monte Carlo iteration against the total number of
-% simulations.
+% Choose whether to display the percent completion of the Monte Carlo process.
+%
+% [...] = ruleN(..., estimateRuntime)
+% Choose whether to estimate the total runtime of the Monte Carlo process.
 %
 % [nSig, randEigSort, thresh, trueConf] = ruleN(..., convergeTest)
 % Choose whether to include or block the recording of the Monte Carlo 
 % iteration convergence. Blocking may speed runtime for large analyses, but
 % causes a loss of information.
 %
-% [...] = ruleN(..., 'svds', 'econ')
+% [...] = ruleN(..., 'econ')
 % Uses the economy sized svds decomposition during Rule N.
 %
-% [...] = ruleN(..., 'svd', nModes')
+% [...] = ruleN(..., 'svds', nModes)
 % Uses the svds decomposition to get eigenvalues for the first nModes
 % modes.
 %
@@ -52,6 +54,10 @@ function[nSig, randEigSort, thresh, trueConf, varargout] = ...
 %       'showProgress' -- Displays the current Monte Carlo iteration number
 %       'noProgress' (Default) -- Does not display the current Monte Carlo number
 %
+% estimateRuntime: A flag for estimating the total runtime
+%       'estimateRuntime' -- Will estimate the runtime for the Monte Carlo process
+%       'noRuntime' (Default) -- Will not estimate runtime
+%
 % convergeTest: A flag to save or ignore Monte Carlo convergence information
 %       'testConverge' (Default) -- Saves the Monte Carlo convergence data
 %       'noConvergeTest' -- Does not save Monte Carlo convergence data
@@ -80,7 +86,7 @@ function[nSig, randEigSort, thresh, trueConf, varargout] = ...
 % Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
 % Inputs and error checking
-[showProgress, testConverge, svdArgs] = parseInputs(varargin{:});
+[showProgress, guessRuntime, testConverge, svdArgs] = parseInputs(varargin{:});
 errCheck(Data, normEigvals, MC, pval)
 
 % Preallocate output
@@ -97,9 +103,14 @@ end
 % Run Rule N...
 for k = 1:MC
     
-    % Display progress if desired
-    if showProgress
-        fprintf('Running Monte Carlo simulation: %i / %i\r\n', k, MC);
+    % Display percent progress progress if desired
+    if showProgress && ( floor(100*k/MC) ~= floor(100*(k-1)/MC) )
+        fprintf('Rule N: %i%% complete \r\n', floor(100*k/MC));
+    end
+    
+    % Begin recording runtime if an estimate is desired
+    if guessRuntime && k==1
+        tic
     end
     
     % Create a random matrix with the desired noise properties, scaled to data standard deviation.
@@ -125,6 +136,12 @@ for k = 1:MC
         
         % Get the set of values on the confidence interval
         iterSigEigs(k,:) = randEigvals(thresh,:);
+    end
+    
+    % Estimate runtime if desired
+    if guessRuntime && k==1
+        iterTime = toc;
+        fprintf('Estimated runtime: %f seconds \r\n', iterTime*MC);
     end
     
 end
@@ -155,13 +172,14 @@ end
 end
 
 %%%%% Helper Functions %%%%%
-function[showProgress, testConvergence, svdArgs] = parseInputs(varargin)
+function[showProgress, guessRuntime, testConvergence, svdArgs] = parseInputs(varargin)
 inArgs = varargin;
 
 % Set defaults
 showProgress = false;
 testConvergence = true;
 svdArgs = {'svd'};
+guessRuntime = false;
 
 % Get input values
 if ~isempty(inArgs)
@@ -173,19 +191,25 @@ if ~isempty(inArgs)
         
         
         if isSvdsArg
-            if isscalar(arg) || strcmpi(arg,'econ')
+            if isscalar(arg)
                 svdArgs = {'svds', arg};
             else
-                error('The svds flag must be followed by nEigs or the ''econ'' flag');
+                error('The svds flag must be followed by nModes');
             end
         elseif strcmpi(arg, 'showProgress')
             showProgress = true;
         elseif strcmpi(arg, 'blockProgress')
             % Do nothing
+        elseif strcmpi(arg, 'estimateRuntime')
+            guessRuntime = true;
+        elseif strcmpi(arg, 'noRuntime')
+            % Do nothing
         elseif strcmpi(arg, 'noConvergeTest')
             testConvergence = false;
         elseif strcmpi(arg, 'testConverge')
             % Do nothing
+        elseif strcmpi(arg, 'econ')
+            svdArgs = {'svd', 'econ'};
         elseif strcmpi(arg, 'svd')
             % Do nothing
         elseif strcmpi(arg, 'svds')

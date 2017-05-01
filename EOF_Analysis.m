@@ -12,7 +12,10 @@ function[s] = EOF_Analysis(Data, matrix, varargin)
 % will not contain any fields requiring the significance test.
 %
 % [s] = EOF_Analysis(..., 'showProgress')
-% Displays the current Monte Carlo iteration onscreen.
+% Displays the percent completion of the Monte Carlo process.
+%
+% [s] = EOF_Analysis(..., 'estimateRuntime')
+% Displays an estimated runtime for the Monte Carlo process.
 %
 % [s] = EOF_Analysis(..., 'econ')
 % Performs the economy sized svd decomposition rather than the full svd.
@@ -116,7 +119,8 @@ function[s] = EOF_Analysis(Data, matrix, varargin)
 % Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
 % Parse Inputs, all error checking will occur in called functions
-[MC, noiseType, pval, showProgress, svdArgs, blockMC, convergeTest] = parseInputs(varargin{:});
+[MC, noiseType, pval, showProgress, svdArgs, blockMC, convergeTest, guessRuntime] = ...
+    parseInputs(varargin{:});
 
 % Declare the intial structure
 s = struct();
@@ -136,11 +140,11 @@ if ~blockMC
     % Run Rule N...
     if convergeTest                 % ... with convergence testing
         [s.nSig, s.randEigvals, s.thresh, s.trueConf, s.iterSigEigs, s.iterTrueConf] = ...
-                ruleN(Data, matrix, s.expVar, MC, noiseType, pval, svdArgs, showProgress);
+                ruleN(Data, matrix, s.expVar, MC, noiseType, pval, svdArgs, showProgress, guessRuntime);
     
     else                            % ... without convergence testing
         [s.nSig, s.randEigvals, s.thresh, s.trueConf] = ...
-            ruleN(Data, matrix, s.expVar, MC, noiseType, pval, svdArgs, showProgress, 'noConvergeTest');
+            ruleN(Data, matrix, s.expVar, MC, noiseType, pval, svdArgs, showProgress, guessRuntime, 'noConvergeTest');
     end
     
     % Perform a Varimax rotation
@@ -170,7 +174,7 @@ s.metadata = [{'matrix';'MC';'noiseType';'svdArgs';'sigTest';'convergeTest'},...
 end
 
 %%%%% Helper Functions %%%%%
-function[MC, noiseType, pval, showProgress, svdArgs, blockMC, convergeTest] = parseInputs(varargin)
+function[MC, noiseType, pval, showProgress, svdArgs, blockMC, convergeTest, guessRuntime] = parseInputs(varargin)
 inArgs = varargin;
 
 % Set defaults
@@ -178,6 +182,7 @@ MC = NaN;
 noiseType = NaN;
 pval = NaN;
 showProgress = 'blockProgress';
+guessRuntime = 'noRuntime';
 svdArgs = {'svd'};
 blockMC = false;
 convergeTest = true;
@@ -229,6 +234,10 @@ if ~isempty(inArgs)
         % Decide whether to show the MC iteration
         elseif strcmpi(arg, 'showProgress') 
             showProgress = 'showProgress';
+            
+        % Decide whether to guess the runtime
+        elseif strcmpi(arg, 'estimateRuntime')
+            guessRuntime = 'estimateRuntime';
             
         % Decide whether to perform the ruleN significance test
         elseif strcmpi(arg, 'noSigTest')
