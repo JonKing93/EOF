@@ -29,7 +29,7 @@ function[ax] = EOFloadings(EOF, names, rotType, varargin)
 %
 % ----- Outputs -----
 %
-% ax: The axes handle for the plot
+% ax: An array of the axes handles.
 %
 %
 % ----- Written By -----
@@ -48,6 +48,7 @@ elseif isnan(iEOF)
 end
 
 if ~isempty(iEOF)
+    ax = [];
    
     % For each significant loading
     for k = iEOF
@@ -63,6 +64,8 @@ if ~isempty(iEOF)
         set(gca, 'XTick', 1:size(loadings,1), 'XTickLabel', names(iL));
         title( sprintf('%s Mode %i', rotString, k) );
         
+        % Add the axis handle to the array
+        ax = [ax; gca]; %#ok<AGROW>
     end
 else
     
