@@ -27,6 +27,7 @@
 %   hasNaN       - Tests if an N-dimensional array contains any NaN elements
 %   posColSign   - Reverses the sign of a vector if the majority of elements are negative        
 %   randNoiseSeries - Creates a random time series with specified noise properties 
+%   quickSVD     - Runs an SVD decomposition on a matrix.
 %
 % References:
 %   Deser, C., and M. L. Blackmon (1993), Surface climate variations over the
