@@ -113,9 +113,12 @@ if ~ismatrix(Data)
     error('Data must be a 2D matrix');
 end
 
-% Ensure data does not contain NaNs
+% Ensure data does not contain NaNs or Inf
 if hasNaN(Data)
     error('Data cannot contain NaNs');
+end
+if any(any(isinf(Data)))
+    error('Data cannot contain Inf or -Inf');
 end
 
 % Matrix is recognized
