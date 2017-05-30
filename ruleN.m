@@ -162,6 +162,7 @@ thresh = ceil( MC * (1-pval) );
 trueConf = thresh / MC;
 
 % Find the significant values
+nSig = 0;
 for k = 1:n
     if normEigvals(k) <= randEigSort(thresh, k)
         nSig = k-1;

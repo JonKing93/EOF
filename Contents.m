@@ -20,7 +20,7 @@
 %   getSignals   - Gets the signals from a standardized dataset and its eigenvectors / modes.
 %   scaleSignals - Scales signals to the standard deviation of the standardized data.
 %   ruleN        - Runs a Rule N significance test on a data matrix and its eigenvalues / loadings.
-%   scaleEigvecs - Scales the eigenvectors by the square root of the eigenvalues. Used for VARIMAX rotation.
+%   scaleModes - Scales the eigenvectors by the square root of the eigenvalues. Used for VARIMAX rotation.
 %   varimaxRotation - Performs a VARIMAX rotation on a set of scaled eigenvectors and eigenvalues.
 %
 % Helper Functions:
