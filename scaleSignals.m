@@ -30,6 +30,9 @@ if ~isrow(eigVals)
     eigVals = eigVals';
 end
 
+% Replicate the eigenvalue matrix
+eigVals = repmat(eigVals, size(signals,1), 1);
+
 % Scale each signal by the corresponding eigenvalue
 scaSignals = signals ./ sqrt(eigVals);
 end

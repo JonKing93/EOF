@@ -75,7 +75,8 @@ randSeries = zscore(randSeries);
 
 % Scale to data standard deviation if desired
 if scaling
-    randSeries = randSeries .* std(Data);
+    scale = repmat( std(Data), size(randSeries,1), 1);
+    randSeries = randSeries .* scale;
 end    
     
 end
