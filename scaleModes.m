@@ -24,6 +24,9 @@ function[scaledModes] = scaleModes(modes, eigVals)
 % Error check and make eigVals a row vector
 [eigVals] = setup(modes, eigVals);
 
+% Ensure compatibility with older versions
+eigVals = repmat( eigVals, size(modes,1), 1);
+
 % Scale the modes.
 scaledModes = modes .* sqrt(eigVals);
 
