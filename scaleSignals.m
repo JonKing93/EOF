@@ -30,7 +30,7 @@ if ~isrow(eigVals)
     eigVals = eigVals';
 end
 
-% Replicate the eigenvalue matrix
+% Replicate the eigenvalue vector into a matrix
 eigVals = repmat(eigVals, size(signals,1), 1);
 
 % Scale each signal by the corresponding eigenvalue
@@ -51,15 +51,15 @@ if ~isvector(eigVals)
 end
 
 % Ensure there are no NaNs
-if hasNaN(signals)
+if any(isnan(signals(:)))
     error('signals cannot contain NaN');
 end
-if hasNaN(eigVals)
+if any(isnan(eigVals(:)))
     error('eigVals cannot contain NaN');
 end
 
 % Ensure eigVals are positive
-if any(any( eigVals < 0))
+if any( eigVals(:) < 0)
     error('The eigenvalues must all be positive');
 end
 

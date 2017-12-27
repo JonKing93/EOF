@@ -19,7 +19,7 @@ function[eigVals, modes, expVar, Datax0, C] = simpleEOF(Data, matrix, varargin)
 %   series. Data cannot contain NaN entries.
 %
 % matrix: The desired analysis matrix.
-%       'cov': Covariance matrix -- Minimizes variance along EOFs
+%       'cov': Covariance matrix -- Minimizes variance along EOF modes
 %       'corr': Correlation matrix -- Minimizes relative variance along
 %               EOFs. Useful for data series with significantly
 %               different magnitudes.
