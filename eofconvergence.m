@@ -28,7 +28,7 @@ end
 
 % Plot the true confidence threshold
 figure();
-plot(s.true_p)
+plot(s.MCtrue_p)
 xlabel('Number of Monte Carlo Iterations');
 ylabel('True Significance Level of Significance Threshold.');
 title('True Significance Level at Significance Thresholds for Monte Carlo Iterations ')

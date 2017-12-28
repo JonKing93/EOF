@@ -29,14 +29,14 @@ randExpVar = sort( randExpVar );
 threshold = ceil( nSets * (1-p) );
 
 % Get the true significance of this threshold
-true_p = threshold / nSets;
+true_p = 1 - threshold / nSets;
 
 % Get the explained variances at this threshold
 sigExpVar = randExpVar( threshold, : );
 
 % If expVar was given, get the number of significant eof modes
 if exist('expVar','var')
-    nSig = find( expVar < sigExpVar, 1, 'first') - 1;
+    nSig = find( expVar' < sigExpVar, 1, 'first') - 1;
     % Return the output
     varargout = {sigExpVar, true_p, nSig};
 else

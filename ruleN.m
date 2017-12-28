@@ -76,7 +76,7 @@ if parallel
 % ...or run in serial
 else
     for k = 1:MC
-        randExpVar(k,:) = runRuleN(k, MC, k, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, 1);
+        randExpVar(k,:) = runRuleN(k, MC, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, 1);
     end
 end
 

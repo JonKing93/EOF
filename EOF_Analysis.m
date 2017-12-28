@@ -184,6 +184,9 @@ function[s] = EOF_Analysis(Data, varargin)
 
 % Declare the intial structure
 s = struct();
+if ~isempty(varNames)
+    s.varNames = varNames;
+end
 
 % Get the analysis matrix
 if strcmp(matrix, 'corr')
@@ -208,10 +211,13 @@ if sigTest
     
     % Test for significance at the desired significance level
     [s.sigExpVar, s.true_p, s.nSig] = eofSigThreshold(s.randExpVar, p, s.expVar);
+
+    % Record the significance level used
+    s.p = p;
     
     % Record Monte Carlo convergence data.
     if convergeTest
-        [s.MCsigExpVar, s.MCtrue_p] = ruleNConvergence( s.randExpVar, p );
+        [s.MCsigExpVar, s.MCtrue_p] = ruleNConvergence( s.randExpVar, s.p );
     end
 end
 
@@ -221,7 +227,7 @@ if isnan(nRotate) && isfield(s, 'nSig')
 end
     
 % Rotation must be performed on 2+ modes or there is no change...
-if nRotate > 1
+if ~isnan(nRotate) && nRotate > 1
     % Perform the rotation
     [s.rotModes, s.rotEigvals, s.rotExpVar, s.rotSignals] = ...
         eofrotation( s.modes(:,1:nRotate), s.eigvals(1:nRotate), s.A, rotType );
@@ -229,7 +235,7 @@ end
     
 % Add metadata for the analysis
 s.metadata = [{'matrix';'MC';'noiseType';'p';'pcaArgs';'Rotated Modes';'Rotation Type'},...
-    {matrix; MC; noise; p; pcaArgs; nRotate; rotType}];
+    {matrix; ruleNArgs{1}; ruleNArgs{2}; s.p; pcaArgs; nRotate; rotType}];
 
 % Plot the output if desired
 if plotting
@@ -247,7 +253,7 @@ function[matType, pcaArgs, sigTest, ruleNArgs, p,convergeTest, nRotate, rotType,
 [plotting, matType, MC,  noise,      p,  sigTest,  pcaArgs,  nRotate,  rotType,  estimateRuntime,  showProgress,  parallel,   convergeTest,     varNames] = parseInputs(varargin,...
 {'noplot','matrix','MC','noiseType','p','noSigTest','pcaArgs','nRotate','rotType','estimateRuntime','showProgress','parallel','noConvergeTest','varNames'},...   % The string flags
 { true,  'corr',  1000,  'red',   0.05,  true,       {},       NaN,   'varimax',     false,           false,       false,       true,            {}},...       % The default values
-{'b',{'corr','cov','raw'},{},{'red','white'},{},'b',   {},      'b',{'varimax','equamax'},'b',            'b',         'b',       'b',           {}} );   % Switches
+{'b',{'corr','cov','raw'},{},{'red','white'},{},'b',   {},      {},{'varimax','equamax'},'b',            'b',         'b',       'b',           {}} );   % Switches
 
 % Ensure Data is a matrix
 if ~ismatrix(Data)
