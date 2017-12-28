@@ -37,7 +37,6 @@ sigExpVar = randExpVar( threshold, : );
 % If expVar was given, get the number of significant eof modes
 if exist('expVar','var')
     nSig = find( expVar < sigExpVar, 1, 'first') - 1;
-    
     % Return the output
     varargout = {sigExpVar, true_p, nSig};
 else

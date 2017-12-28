@@ -74,8 +74,8 @@ if ~isempty( inArgs )
             
             % If this is a boolean switch...
             if isequal(switches{valueID}, 'b')
-                % Set value to true
-                varargout{valueID} = true;
+                % Set value to the opposite of default
+                varargout{valueID} = ~varargout{valueID};
                 setValue(valueID) = true;
                 valueID = NaN;
             end
@@ -121,8 +121,13 @@ end
 
 % Ensure that all switches are {}, 'b', or a cell vector of strings
 for k = 1:length(switches)
-    if isempty(switches{k}) || isequal(switches{k}, 'b')
+    if isempty(switches{k})
         % Do nothing
+    elseif isequal(switches{k}, 'b')
+        % Ensure that the default is a boolean
+        if ~islogical( defaults{k} )
+            error('''%s'' is a boolean switch, but its default value is not a boolean.',flags{k});
+        end
     elseif iscell(switches{k}) && isvector(switches{k})
         for j = 1:length(switches{k})
             if ~ischar(switches{k}{j}) || ~isvector(switches{k}{j})
@@ -133,6 +138,7 @@ for k = 1:length(switches)
         error('Unrecognized value in switches. All switches must be {}, ''b'' or a cell vecctor of strings.');
     end
 end
+
 end
         
         
