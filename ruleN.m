@@ -66,8 +66,12 @@ end
 
 % Run Rule N in parallel...
 if parallel
+    fprintf('Activating parallel pool. This may take a few minutes...');
+    pool = parpool;
+    fprintf('Activation complete.');
+    nWorkers = pool.nWorkers;
     parfor k = 1:MC
-        randExpVar(k,:) = runRuleN(k, MC, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, pool.NumWorkers);
+        randExpVar(k,:) = runRuleN(k, MC, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, nWorkers);
     end
 % ...or run in serial
 else

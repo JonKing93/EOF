@@ -207,7 +207,7 @@ if sigTest
     s.randExpVar = ruleN( Data, matrix, ruleNArgs{:});
     
     % Test for significance at the desired significance level
-    [s.sigExpVar, s.true_p, s.nSig] = getSigThreshold(s.randExpVar, p, s.expVar);
+    [s.sigExpVar, s.true_p, s.nSig] = eofSigThreshold(s.randExpVar, p, s.expVar);
     
     % Record Monte Carlo convergence data.
     if convergeTest

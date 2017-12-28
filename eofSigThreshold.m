@@ -1,4 +1,4 @@
-function[varargout] = getSigThreshold( randExpVar, p, expVar )
+function[varargout] = eofSigThreshold( randExpVar, p, expVar )
 %% Gets the explained variance values required for significance at significance level p
 %
 % [sigExpVar, true_p] = getSigThreshold( randExpVar, p )
