@@ -1,29 +1,27 @@
-function[nSig, randEigSort, thresh, trueConf, varargout] = ...
-    ruleN(Data, matrix, normEigvals, MC, noiseType, pval, varargin)
+function[randExpVar] = ruleN(Data, matrix, MC, noise, varargin)
 %% Runs a Rule N significance test on a data matrix and its eigenvalues.
 %
-% [nSig, randEigSort, thresh, trueConf, iterTrueConf, iterSigEigs] = ...
-%    ruleN(Data, matrix, eigVals, MC, noiseType, pval)
-% Runs a Rule N significance test on a dataset and saves Monte Carlo
-% convergence data.
+% [randExpVar] = ruleN(Data, MC, noise, p)
+% Runs a Rule N significance test using MC iterations. Tests for
+% significance <= p against white Gaussian, or red AR(1) noise. Records
+% Monte Carlo convergence data.
 %
-% [...] = ruleN(..., showProgress)
-% Choose whether to display the percent completion of the Monte Carlo process.
+% ruleN(..., 'parallel')
+% To speed up runtime, runs the Monte Carlo process in parallel using 
+% MATLAB's default settings. If the Distributed Computing Toolbox is not 
+% licensed, defaults to serial computing. 
 %
-% [...] = ruleN(..., estimateRuntime)
-% Choose whether to estimate the total runtime of the Monte Carlo process.
+% ruleN(..., 'showProgress')
+% Displays a progress bar showing the progress through the Monte Carlo 
+% iterations. This option is disabled when computing in parallel.
 %
-% [nSig, randEigSort, thresh, trueConf] = ruleN(..., convergeTest)
-% Choose whether to include or block the recording of the Monte Carlo 
-% iteration convergence. Blocking may speed runtime for large analyses, but
-% causes a loss of information.
+% ruleN(..., 'estimateRuntime')
+% Estimates total runtime based on the number of iterations and available
+% workers in the computing pool.
 %
-% [...] = ruleN(..., 'econ')
-% Uses the economy sized svds decomposition during Rule N.
-%
-% [...] = ruleN(..., 'svds', nModes)
-% Uses the svds decomposition to get eigenvalues for the first nModes
-% modes.
+% ruleN(..., 'pcaArgs', {'param1',val1,'param2',val2...})
+% Uses alternative arguments for the pca function. See the MATLAB
+% documentation on "pca" for more details.
 %
 % 
 % ----- Inputs -----
@@ -36,10 +34,7 @@ function[nSig, randEigSort, thresh, trueConf, varargout] = ...
 %       'corr': Correlation matrix -- Minimizes relative variance along
 %               EOFs. Often useful for data series with significantly
 %               different magnitudes.
-%       'none': Perform svd directly on data matrix.
-%
-% normEigvals: The normalized eigenvalues of the analysis matrix. Generally
-%       equivalent to the explained variance of EOF modes.
+%       'raw': Perform svd directly on data matrix.
 %
 % MC: The number of Monte Carlo iterations to perform
 %
@@ -47,194 +42,80 @@ function[nSig, randEigSort, thresh, trueConf, varargout] = ...
 %   'white':    white noise
 %   'red':      lag-1 autocorrelated red noise with Gaussian white noise.
 %
-% pval: The significance level desired for the test to pass. Must be on the
-%       interval (0 1).
-%
-% showProgress: A flag for displaying the current Monte Carlo iteration number
-%       'showProgress' -- Displays the current Monte Carlo iteration number
-%       'noProgress' (Default) -- Does not display the current Monte Carlo number
-%
-% estimateRuntime: A flag for estimating the total runtime
-%       'estimateRuntime' -- Will estimate the runtime for the Monte Carlo process
-%       'noRuntime' (Default) -- Will not estimate runtime
-%
-% convergeTest: A flag to save or ignore Monte Carlo convergence information
-%       'testConverge' (Default) -- Saves the Monte Carlo convergence data
-%       'noConvergeTest' -- Does not save Monte Carlo convergence data
-%
 %            
 % ----- Outputs -----
 %
-% lastSigNum: The number of eigenvalues that pass rule N
-%
-% randEigSort: The matrix of random, normalized, sorted eigenvalues
-% 
-% thresh: The index of the threshold row in randEigSort of which data
-%       eigenvalues must exceed to remain significant.
-%
-% trueConf: The true confidence level of this threshold
-%
-% iterSigEigs: The set of random eigenvalues that data eigenvalues must
-%       exceed to remain significant after each additional Monte Carlo iteration.
-%
-% iterTrueConf: The true significance level of the threshold eigenvalues
-%       after each additional Monte Carlo iteration.
+% randExpVar: A set of random explained variances.
 %
 %
 % ----- Written By -----
 % 
 % Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
-% Inputs and error checking
-[showProgress, guessRuntime, testConverge, svdArgs] = parseInputs(varargin{:});
-errCheck(Data, normEigvals, MC, pval)
+% Parse inputs and error checking
+[parallel, showProgress, estimateRuntime, pcaArgs] = setup( Data, matrix, MC, noise, varargin{:} );
 
-% Preallocate output
-[~, n] = size(Data);
-randEigvals = NaN(MC,n);
-if testConverge
-    iterSigEigs = NaN(MC, n);
-    iterTrueConf = NaN(MC, 1);
+% Preallocate Eigenvalue array
+[~, nCols] = size(Data);
+randExpVar = NaN(MC,nCols);
+
+% Initialize the progress bar if displaying
+if showProgress
+    progressbar(0);
+end
+
+% Run Rule N in parallel...
+if parallel
+    parfor k = 1:MC
+        randExpVar(k,:) = runRuleN(k, MC, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, pool.NumWorkers);
+    end
+% ...or run in serial
 else
-    iterSigEigs = [];
-    iterTrueConf = [];
-end
-
-% Run Rule N...
-for k = 1:MC
-    
-    % Display percent progress progress if desired
-    if showProgress && ( floor(100*k/MC) ~= floor(100*(k-1)/MC) )
-        fprintf('Rule N: %i%% complete \r\n', floor(100*k/MC));
-    end
-    
-    % Begin recording runtime if an estimate is desired
-    if guessRuntime && k==1
-        tic
-    end
-    
-    % Create a random matrix with the desired noise properties, scaled to data standard deviation.
-    g = randNoiseSeries(noiseType, Data);
-    
-    % Run an EOF analysis on the random matrix
-    [randEig, ~] = simpleEOF(g, matrix, svdArgs);
-    
-    % Normalize the eigenvalues
-    randEig = randEig ./ sum(randEig);
-    
-    % Store the random eigenvalues
-    randEigvals(k,:) = randEig;
-    
-    % If testing Monte Carlo convergence...
-    if testConverge
-        % Sort the current set of random eigenvalues
-        randEigvals = sort(randEigvals);
-        
-        % Calculate the current confidence level threshold
-        thresh = ceil(k * (1-pval));
-        iterTrueConf(k) = thresh / k;
-        
-        % Get the set of values on the confidence interval
-        iterSigEigs(k,:) = randEigvals(thresh,:);
-    end
-    
-    % Estimate runtime if desired
-    if guessRuntime && k==1
-        iterTime = toc;
-        fprintf('Estimated runtime: %f seconds \r\n', iterTime*MC);
-    end
-    
-end
-
-% Sort the eigenvalues when there is no convergence test
-if ~testConverge
-    randEigSort = sort(randEigvals);
-else
-    randEigSort = randEigvals;
-    varargout = cell(2,1);
-    varargout{1} = iterSigEigs;
-    varargout{2} = iterTrueConf;
-end
-
-
-% Calculate the confidence level threshold and its true confidence level
-thresh = ceil( MC * (1-pval) );
-trueConf = thresh / MC;
-
-% Find the significant values
-nSig = 0;
-for k = 1:n
-    if normEigvals(k) <= randEigSort(thresh, k)
-        nSig = k-1;
-        break;
+    for k = 1:MC
+        randExpVar(k,:) = runRuleN(k, MC, k, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, 1);
     end
 end
 
 end
 
 %%%%% Helper Functions %%%%%
-function[showProgress, guessRuntime, testConvergence, svdArgs] = parseInputs(varargin)
-inArgs = varargin;
+function[parallel, showProgress, estimateRuntime, pcaArgs] = setup( Data, matrix, MC, noise, varargin )
 
-% Set defaults
-showProgress = false;
-testConvergence = true;
-svdArgs = {'svd'};
-guessRuntime = false;
+% Parse the inputs
+[parallel, showProgress, estimateRuntime, pcaArgs] = parseInputs( varargin,...
+    {'parallel','showProgress','estimateRuntime','pcaArgs'},... % Flags
+    {false,false,false,{}}, {'b','b','b',{}} );      % Defaults and switches
 
-% Get input values
-if ~isempty(inArgs)
-    isSvdsArg = false;
-    
-    % Get each input
-    for k = 1:length(inArgs)
-        arg = inArgs{k};
-        
-        
-        if isSvdsArg
-            if isscalar(arg)
-                svdArgs = {'svds', arg};
-            else
-                error('The svds flag must be followed by nModes');
-            end
-        elseif strcmpi(arg, 'showProgress')
-            showProgress = true;
-        elseif strcmpi(arg, 'blockProgress')
-            % Do nothing
-        elseif strcmpi(arg, 'estimateRuntime')
-            guessRuntime = true;
-        elseif strcmpi(arg, 'noRuntime')
-            % Do nothing
-        elseif strcmpi(arg, 'noConvergeTest')
-            testConvergence = false;
-        elseif strcmpi(arg, 'testConverge')
-            % Do nothing
-        elseif strcmpi(arg, 'econ')
-            svdArgs = {'svd', 'econ'};
-        elseif strcmpi(arg, 'svd')
-            % Do nothing
-        elseif strcmpi(arg, 'svds')
-            if length(inArgs) >= k+1
-                isSvdsArg = true;
-            else
-                error('The svds flag must be followed by nEigs or the ''econ'' flag');
-            end
-        else
-            error('Unrecognized Input');
-        end
+% Error checking
+if ~ismatrix(Data)
+    error('Data must be a 2D matrix');
+elseif ~any( strcmpi( matrix, {'corr','cov','raw'} ) )
+    error('Unrecognized matrix');
+elseif ~any( strcmpi( noise, {'red','white'}))
+    error('Unrecognized noise type');
+elseif ~isfloat(MC) || MC < 1 || mod(MC,1)~=0
+    error('MC must be a positive integer.');
+elseif any( strcmpi( 'Centered', pcaArgs ) )
+    error('The ''Centered'' option for pcaArgs is forbidden. RuleN implements this separately.');
+end
+
+% If analyzing raw matrix, remove centering from pca
+if strcmpi(matrix, 'raw')
+    pcaArgs = [pcaArgs, 'Centered', false];
+end
+
+% If running in parallel, check for the Distributed Computing Toolbox
+if parallel
+    if ~license('test', 'Distrib_Computing_Toolbox')
+        warning( sprintf('The Distributed Computing Toolbox is not licensed on this computer.\r\nCannot run in parallel. Reverting to default serial mode...')); %#ok<SPWRN>
+        parallel = false;
     end
 end
+
+% Disable 'showProgress' for parallel computing
+if parallel && showProgress
+    warning('Cannot display progress for parallel computations.');
+    showProgress = false;
 end
 
-function[] = errCheck(Data, eigVals, MC, pval)
-if hasNaN(Data)
-    error('Data cannot contain NaN');
-elseif hasNaN(eigVals)
-    error('eigVals cannot contain NaN');
-elseif MC < 1
-    error('The Monte Carlo number must be a positive integer');
-elseif pval<=0 || pval>=1
-    error('The p values must be on the interval (0,1)');
 end
-end
-    

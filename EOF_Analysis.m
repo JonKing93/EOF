@@ -32,7 +32,7 @@ function[s] = EOF_Analysis(Data, varargin)
 % EOF_Analysis(..., 'noiseType', noise)
 % Specifies whether to perform the significance test against a white or a
 % AR(1) red-noise process. By default, EOF_Analysis uses a red significance
-% test. Use a white significance test (random noise, variance=1, mean=0)
+% test. Use a white significance test (Gaussian noise, variance=1, mean=0)
 % for processes with minimal autocorrelation. Use a red test for processes
 % with high autocorrelation or long memory. A red test is generally more
 % stringent and applicable to many geophysical / geological processes.
@@ -55,8 +55,9 @@ function[s] = EOF_Analysis(Data, varargin)
 % Specifies the number of EOF modes to rotate. This will rotate the leading
 % modes.
 %
-% EOF(..., 'equamax')
-% Uses an equamax rotation instead of the default varimax rotation.
+% EOF(..., 'rotType', rotType)
+% Specify the type of rotation to use (Varimax or Equamax). By default,
+% EOF_Analysis uses Varimax rotation.
 %
 % RUNTIME OPTIONS:
 % Huge dataset? Monte Carlo processes taking forever? Try some of these
@@ -76,7 +77,7 @@ function[s] = EOF_Analysis(Data, varargin)
 %
 % [s] = EOF_Analysis(..., 'noConvergeTest')
 % A flag to block the test for Monte Carlo convergence. This may modestly
-% improve runtime, but all convergence data will be lost.
+% improve runtime.
 %
 %
 % ----- Inputs -----
@@ -101,6 +102,10 @@ function[s] = EOF_Analysis(Data, varargin)
 %
 % p: The significance level that the significance test should pass. Must be
 %    a positive number on the interval (0, 1).
+%
+% nRotate:
+%
+% rotType:
 %
 %
 % ----- Outputs -----
@@ -171,17 +176,20 @@ function[s] = EOF_Analysis(Data, varargin)
 % 
 % Jonathan King, 2017, University of Arizona (jonking93@email.arizona.edu)
 
-% Parse Inputs, all error checking will occur in called functions
-% Need to write
+% Parse inputs, error checking, setup for the analysis
+[matrix, pcaArgs, sigTest, ruleNArgs, nRotate, rotType, plotting] = setup( Data, varargin{:} );% Setup the analysis, do some error checking
 
 % Declare the intial structure
 s = struct();
 
 % Get the analysis matrix
-if strcmp(matType, 'corr')
+if strcmp(matrix, 'corr')
     s.A = zscore(Data);
-elseif strcmp(matType, 'cov')
+elseif strcmp(matrix, 'cov')
     s.A = detrend(Data, 'constant');
+else
+    s.A = Data;
+    pcaArgs = [pcaArgs, 'Centered', false];
 end
 
 % Run the initial EOF on the Data
@@ -192,9 +200,16 @@ s.scaledSignals = scaleSignals( s.signals, s.eigvals );
 
 % If testing significance...
 if sigTest
-    % ... Run Rule N
-%     ruleN( Data, matrix, s.expVar, MC, noisetype, pval, showProgress, guessRuntime)
-    % Need to write.
+    % Do the Rule N process
+    s.randExpVar = ruleN( Data, matrix, ruleNArgs{:});
+    
+    % Test for significance at the desired significance level
+    [s.nSig] = 
+    
+    % Record Monte Carlo convergence data.
+    if convergeTest
+        [s.MCsigExpVar, s.MCtrue_p] = ruleNConvergence( s.randExpVar, p );
+    end
 end
 
 % Determine how many modes to rotate if the user did not override the
@@ -212,7 +227,7 @@ end
     
 % Add metadata for the analysis
 s.metadata = [{'matrix';'MC';'noiseType';'p';'pcaArgs';'Rotated Modes';'Rotation Type'},...
-    {matType; MC; noise; p; pcaArgs; nRotate; rotType}];
+    {matrix; MC; noise; p; pcaArgs; nRotate; rotType}];
 
 % Plot the output if desired
 if plotting
@@ -222,95 +237,145 @@ end
 end
 
 %%%%% Helper Functions %%%%%
-function[MC, noiseType, pval, showProgress, svdArgs, blockMC, convergeTest, guessRuntime] = parseInputs(varargin)
-inArgs = varargin;
+function[matType, pcaArgs, sigTest, ruleNArgs, nRotate, rotType, plotting] = setup( Data, varargin )
 
-% Set defaults
-MC = NaN;
-noiseType = NaN;
-pval = NaN;
-showProgress = 'blockProgress';
-guessRuntime = 'noRuntime';
-svdArgs = {'svd'};
-blockMC = false;
-convergeTest = true;
+% Parse the inputs
+[plotting, matType, MC,  noise,      p,  noSigTest,  pcaArgs,  nRotate,  rotType,  estimateRuntime,  showProgress,  parallel,  noConvergeTest] = parseInputs(varargin,...
+{'noplot','matrix','MC','noiseType','p','noSigTest','pcaArgs','nRotate','rotType','estimateRuntime','showProgress','parallel','noConvergeTest'},...   % The string flags
+{ false,  'corr',  1000,  'red',   0.05,  false,       {},       NaN,   'varimax',     false,           false,       false,     false},...       % The default values
+{'b',{'corr','cov','raw'},{},{'red','white'},{},'b',   {},      'b',{'varimax','equamax'},'b',            'b',         'b',       'b'} );   % Switches
 
-% Get input values
-if ~isempty(inArgs)
-    
-    % Set flag switches to false
-    isSvdsArg = false;
-    isNoiseType = false;
-    isPval = false;
-    
-    % Get each input
-    for k = 1:length(inArgs)
-        arg = inArgs{k};
-        
-        % Set MC if using rule N
-        if (k==1) && ~strcmpi(arg, 'noSigTest')
-            if length(inArgs) < 3
-                error('Insufficient parameters given for Rule N test');
-            else
-                MC = arg;
-                isNoiseType = true;
-            end    
-            
-        % Get noisetype
-        elseif isNoiseType
-            noiseType = arg;
-            isPval = true;
-            isNoiseType = false;
-            
-        % Get the p value
-        elseif isPval
-            pval = arg;
-            isPval = false;    
-            
-        % Get svds Args
-        elseif isSvdsArg
-            if isscalar(arg)
-                svdArgs = {'svds', arg};
-            else
-                error('The svds flag must be followed by nModes');
-            end
-            
-        % Decide whether to do the economy sized decomposition
-        elseif strcmpi(arg, 'econ')
-            svdArgs = {'svd', 'econ'};
-            
-        % Decide whether to show the MC iteration
-        elseif strcmpi(arg, 'showProgress') 
-            showProgress = 'showProgress';
-            
-        % Decide whether to guess the runtime
-        elseif strcmpi(arg, 'estimateRuntime')
-            guessRuntime = 'estimateRuntime';
-            
-        % Decide whether to perform the ruleN significance test
-        elseif strcmpi(arg, 'noSigTest')
-            blockMC = true;
-            
-        % Decide whether to save data on Monte Carlo convergence
-        elseif strcmpi(arg, 'noConvergeTest')
-            convergeTest = false;
-            
-        % Note that the next input is the svd Arg
-        elseif strcmpi(arg, 'svds')
-            if length(inArgs) >= k+1
-                isSvdsArg = true;
-            else
-                error('The svds flag must be followed by nEigs or the ''econ'' flag');
-            end
-            
-        % Anything else
-        else
-            error('Unrecognized Input');
-        end
-    end
-    
-% Must have at least some inputs
-else
-    error('Insufficient inputs');
+% Ensure Data is a matrix
+if ~ismatrix(Data)
+    error('Data must be a 2D matrix.');
 end
-end             
+
+% Disable the 'Centered' option for pca. (Centering is implemented
+% separately by EOF_Analysis
+if any( strcmpi( 'Centered', pcaArgs ) )
+    error('The ''Centered'' option for pcaArgs is forbidden. EOF_Analysis implements this separately.');
+end
+
+% Ensure that the number of rotated modes is valid if specified by the user
+if ~isnan(nRotate)
+    nCols = size(Data,2);
+    if ~isfloat(nRotate) || nRotate<0 || nRotate>nCols || mod(nRotate,1)~=0
+        error('The number of rotated modes must be an integer on the closed interval from 0 to the number of data vectors.');
+    end
+end
+
+% Set the rule N argument list
+ruleNArgs = {MC, noise, 'pcaArgs', pcaArgs};
+if estimateRuntime
+    ruleNArgs = [ruleNArgs, 'estimateRuntime'];
+end
+if showProgress
+    ruleNArgs = [ruleNArgs, 'showProgress'];
+end
+if parallel
+    ruleNArgs = [ruleNArgs, 'parallel'];
+end
+
+% Flip noSigTest
+sigTest = ~noSigTest;
+
+end
+
+
+
+
+
+
+
+% function[MC, noiseType, pval, showProgress, svdArgs, blockMC, convergeTest, guessRuntime] = parseInputs(varargin)
+% inArgs = varargin;
+% 
+% % Set defaults
+% MC = NaN;
+% noiseType = NaN;
+% pval = NaN;
+% showProgress = 'blockProgress';
+% guessRuntime = 'noRuntime';
+% svdArgs = {'svd'};
+% blockMC = false;
+% convergeTest = true;
+% 
+% % Get input values
+% if ~isempty(inArgs)
+%     
+%     % Set flag switches to false
+%     isSvdsArg = false;
+%     isNoiseType = false;
+%     isPval = false;
+%     
+%     % Get each input
+%     for k = 1:length(inArgs)
+%         arg = inArgs{k};
+%         
+%         % Set MC if using rule N
+%         if (k==1) && ~strcmpi(arg, 'noSigTest')
+%             if length(inArgs) < 3
+%                 error('Insufficient parameters given for Rule N test');
+%             else
+%                 MC = arg;
+%                 isNoiseType = true;
+%             end    
+%             
+%         % Get noisetype
+%         elseif isNoiseType
+%             noiseType = arg;
+%             isPval = true;
+%             isNoiseType = false;
+%             
+%         % Get the p value
+%         elseif isPval
+%             pval = arg;
+%             isPval = false;    
+%             
+%         % Get svds Args
+%         elseif isSvdsArg
+%             if isscalar(arg)
+%                 svdArgs = {'svds', arg};
+%             else
+%                 error('The svds flag must be followed by nModes');
+%             end
+%             
+%         % Decide whether to do the economy sized decomposition
+%         elseif strcmpi(arg, 'econ')
+%             svdArgs = {'svd', 'econ'};
+%             
+%         % Decide whether to show the MC iteration
+%         elseif strcmpi(arg, 'showProgress') 
+%             showProgress = 'showProgress';
+%             
+%         % Decide whether to guess the runtime
+%         elseif strcmpi(arg, 'estimateRuntime')
+%             guessRuntime = 'estimateRuntime';
+%             
+%         % Decide whether to perform the ruleN significance test
+%         elseif strcmpi(arg, 'noSigTest')
+%             blockMC = true;
+%             
+%         % Decide whether to save data on Monte Carlo convergence
+%         elseif strcmpi(arg, 'noConvergeTest')
+%             convergeTest = false;
+%             
+%         % Note that the next input is the svd Arg
+%         elseif strcmpi(arg, 'svds')
+%             if length(inArgs) >= k+1
+%                 isSvdsArg = true;
+%             else
+%                 error('The svds flag must be followed by nEigs or the ''econ'' flag');
+%             end
+%             
+%         % Anything else
+%         else
+%             error('Unrecognized Input');
+%         end
+%     end
+%     
+% % Must have at least some inputs
+% else
+%     error('Insufficient inputs');
+% end
+% end             

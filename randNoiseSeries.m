@@ -32,8 +32,13 @@ function[randSeries] = randNoiseSeries(noiseType, Data, varargin)
 %
 % randSeries: The matrix of randomly generated, noisy time series. Each column
 %   of the matrix is a separate time series.
+%
+%
+% ----- Written By -----
+%
+% Jonathan King, 2017, University of Arizona, jonking93@email.arizona.edu
 
-[nSeries, scaling] = parseInputs(Data, varargin{:});
+[nSeries, scaling] = setup(Data, varargin{:});
 
 % If data is a row vector, make into a column vector
 if isrow(Data)
@@ -82,7 +87,7 @@ end
 end
 
 % ----- Helper Functions -----
-function[nSeries, scaling] = parseInputs(Data, varargin)
+function[nSeries, scaling] = setup(Data, varargin)
 inArgs = varargin;
 
 % Set defaults
