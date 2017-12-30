@@ -21,10 +21,10 @@ function[s] = EOF_Analysis(Data, varargin)
 % EOF_Analysis(..., 'matrix', matrix)
 % Specifies whether to perform the analysis on normalized, centered, or raw
 % data. By default, EOF_Analysis normalizes data. Normalizing data causes
-% each mode to minimize RELATIVE covariance. It is most useful for
-% examining shared correlations or for data vectors with very different
-% magnitudes. Centering data causes each mode to minimize TOTAL variance
-% between centered data vectors. Analyzing raw data minimizes total
+% each mode to minimize RELATIVE covariance (i.e. correlation). It is most
+% useful for examining shared correlations or for data vectors with very
+% different magnitudes. Centering data causes each mode to minimize TOTAL
+% covariance between data vectors. Analyzing raw data minimizes total
 % variance in the original dataset.
 %
 % EOF_Analysis(..., 'MC', MC)
@@ -70,7 +70,8 @@ function[s] = EOF_Analysis(Data, varargin)
 % Displays an estimate of total runtime for the Monte Carlo process.
 %
 % [s] = EOF_Analysis(..., 'showProgress')
-% Displays the percent completion of the Monte Carlo process.
+% Displays a progress bar with percent completion and estimated remaining
+% time for Rule-N. Not available for parallel computations.
 %
 % [s] = EOF_Analysis(..., 'parallel')
 % If possible, runs the Monte Carlo significance tests in parallel. This
@@ -80,7 +81,7 @@ function[s] = EOF_Analysis(Data, varargin)
 %
 % [s] = EOF_Analysis(..., 'noConvergeTest')
 % A flag to block the test for Monte Carlo convergence. This may modestly
-% improve runtime.
+% improve runtime for very large significance tests.
 %
 %
 % ----- Inputs -----
@@ -100,20 +101,25 @@ function[s] = EOF_Analysis(Data, varargin)
 %       test. Must be a positive integer.
 %
 % noise: A flag for the noise used in the Rule N significance test
+%       'red' (Default): AR(1) noise with added white noise
 %       'white': white Gaussian noise. (mean = 0, variance = 1)
-%       'red': lag-1 autocorrelated noise with added white noise
 %
 % p: The significance level that the significance test should pass. Must be
 %    a positive number on the interval (0, 1).
 %
-% nRotate:
+% nRotate: The number of modes to rotate. Must be between 0 and the number
+%          of data variables
 %
-% rotType:
+% rotType: The type of rotation to use
+%       'varimax' (Default): Varimax Rotation
+%       'equamax': Equamax Rotation
 %
 %
 % ----- Outputs -----
 %
-% s: A structure containing the following fields
+% s: A structure containing some or all of the following fields
+%
+%   varNames: The names of the data variables.
 %
 %   A: The analysis matrix. This is the standardized, detrended or raw data matrix.
 %
@@ -122,6 +128,10 @@ function[s] = EOF_Analysis(Data, varargin)
 %          matrix. They record how strongly each data vector is associated
 %          with each EOF signal.
 %
+%   signals: The signal for each EOF mode. Each column contains a signal.Signals are the imprint of each
+%       mode on the original data series, also known as scores or EOF 
+%       time series. Each column is one signal.
+%
 %   eigVals: A vector with the eigenvalues of the analysis matrix sorted in
 %            descending order. Each eigenvalue corresponds to the strength
 %            of the associated EOF mode.
@@ -129,50 +139,44 @@ function[s] = EOF_Analysis(Data, varargin)
 %   expVar: The variance explained by each mode. Equivalent to the
 %           normalized eigenvalues.
 %
-%   signals: The signal for each EOF mode. Each column contains a signal.Signals are the imprint of each
-%       mode on the original data series, also known as scores or EOF 
-%       time series. Each column is one signal.
-%
 %   scaledSignals: The signals scaled to the analysis data matrix. Allows
-%                  for direct comparison of signals with the
+%                  for direct comparison of signals with the original
 %                  standardized/centered/raw data series.
-%
-%   nSig: The number of modes that pass the Rule N significance test. 
 %
 %   randEigvals: The set of random, normalized eigenvalues generated during
 %       the Rule N significance test. Each row contains the eigenvalues
 %       at a particular confidence interval.
 %
-%   thresh: The index of the threshold row in randEigvals that the data 
-%       eigenvalues must exceed in order to pass the significance test.
+%   p: The significance level used for the Rule N test.
 %
-%   conf: The confidence level for the significance tests. 
+%   sigExpVar: The explained variance threshold for significance. The
+%       explained variance of EOF modes must be greater than or equal to 
+%       this threshold to be significant.
 %
-%   trueConf: The true confidence level of the threshold row.
+%   true_p: The actual significance level of the Rule N test. (Depending on
+%   the number of Monte Carlo iterations, the significance level of the
+%   Rule N test may be slightly higher than the user-specified value.
 %
-%   iterTrueConf: The true confidence level of the threshold row after
-%       each iteration of the Monte Carlo simulations.
+%   nSig: The number of leading eof modes that pass the Rule N significance test.
 %
-%   iterSigEigs: The set of eigenvalues that the data values must exceed
-%       for significance after each successive Monte Carlo iteration.
+%   MCsigExpVar: The explained variance significance threshold at each
+%       successive Monte Carlo iteration.
 %
-%   scaModes: The scaled modes used for VARIMAX rotation. Modes are scaled 
-%       by the square root of the loadings.
+%   MCtrue_p: The true significance level being tested at each successive
+%       Monte Carlo iteration.
 %
-%   rotModes: The VARIMAX rotated modes.
+%   rotModes: The rotated eof modes.
 %
 %   rotEigvals: The eigenvalues for the rotated modes.
 %
-%   rotExpVar: The variance explained by the rotated loadings.
+%   rotExpVar: The variance explained by the rotated modes.
 %
 %   rotSignals: The signals corresponding to the rotated modes.
 %
-%   scaRotSignals: The scaled signal for each rotated mode.
+%   scaledRotSignals: The signals corresponding to the rotated modes scaled
+%       to the analysis matrix.
 %
-%   rotMatrix: The rotation matrix used to rotate the significant modes.
-%
-%   metadata: Information concerning the settings used for the analysis.
-%       Contains: matrix, MC, noisetype, pval, and any additional flags.
+%   metadata: Information to support replication of the analysis.
 %
 %
 % ----- Written By -----
@@ -209,11 +213,11 @@ if sigTest
     % Do the Rule N generating process
     s.randExpVar = ruleN( Data, matrix, ruleNArgs{:});
     
-    % Test for significance at the desired significance level
-    [s.sigExpVar, s.true_p, s.nSig] = eofSigThreshold(s.randExpVar, p, s.expVar);
-
     % Record the significance level used
     s.p = p;
+    
+    % Test for significance at the desired significance level
+    [s.sigExpVar, s.true_p, s.nSig] = eofSigThreshold(s.randExpVar, p, s.expVar);
     
     % Record Monte Carlo convergence data.
     if convergeTest

@@ -1,5 +1,12 @@
 function randExpVar = runRuleN(k, MC, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, nWorkers)
-% This runs the body of the for loop or parfor loop for rule N. 
+%% Generates random explained variances within a for or parfor loop in ruleN.
+%
+% randExpVar = runRuleN(k, MC, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, nWorkers)
+%
+%
+% ----- Author -----
+%
+% Jonathan King, 2017, University of Arizona, jonking93@email.arizona.edu
      
 % Begin recording runtime if an estimate is desired
 if estimateRuntime && k==1

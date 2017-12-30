@@ -1,7 +1,7 @@
 function[ax] = eofconvergence(s)
-%% Plots the convergence (or lack thereof) of the Rule N significance tests
+%% Plots the evolution of the significance threshold for each iteration of Rule N.
 %
-% [ax] = plotRuleN(EOF)
+% [ax] = eofconvergence(s)
 % Plots the true confidence threshold and standardized significant
 % eignvalue threshold for each iteration of the Monte Carlo Rule N
 % significance test. Returns the axes handles for the plots.
@@ -9,7 +9,7 @@ function[ax] = eofconvergence(s)
 %
 % ----- Inputs -----
 %
-% EOF: A structure from an EOF_Analysis
+% s: An output structure from EOF_Analysis
 %
 %
 % ----- Outputs -----

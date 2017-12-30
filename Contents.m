@@ -2,8 +2,8 @@
 %
 % This folder contains functions involved in EOF Analysis.
 %
-% The function EOF_Analysis runs an analysis in full, but the functions may
-% also be used individually.
+% The function EOF_Analysis runs an analysis in full, but the sub-functions
+% may also be used individually.
 %
 % Main Function:
 %   EOF_Analysis  - Performs a full EOF Analysis of a data set. Uses a
@@ -11,23 +11,33 @@
 %                   of significant modes.   
 %
 % Figure Functions:
-%   EOFloadings  - Plots the loadings of data series on significant modes.
-%   EOFsigplot   - A scree plot showing the modes that pass the significance test.
-%   plotRuleN    - Plots the convergence (or lack thereof) of the Rule N Monte Carlo tests.
+%   eofsignificance - Plots the results of the Rule N significance test,
+%                     and shows significnant EOF modes.
+%   eofloadings - Plots the loadings of data variables on significant and
+%                 rotated EOF modes.
+%   eofconvergence - Plots the change in significance threshold with
+%                    increasing Monte Carlo iterations.
 %
-% Operational Functions:
-%   simpleEOF    - Gets the EOF modes, and associated eigenvalues and explained variance for a data matrix
-%   getSignals   - Gets the signals from a standardized dataset and its eigenvectors / modes.
-%   scaleSignals - Scales signals to the standard deviation of the standardized data.
-%   ruleN        - Runs a Rule N significance test on a data matrix and its eigenvalues / loadings.
-%   scaleModes - Scales the eigenvectors by the square root of the eigenvalues. Used for VARIMAX rotation.
-%   varimaxRotation - Performs a VARIMAX rotation on a set of scaled eigenvectors and eigenvalues.
+% Analysis Functions:
+%   scaleSignals - Scale EOF signals (also known as PCs) for comparison
+%                  with data in the EOF analysis matrix.
 %
-% Helper Functions:
-%   hasNaN       - Tests if an N-dimensional array contains any NaN elements
-%   posColSign   - Reverses the sign of a vector if the majority of elements are negative        
+%   ruleN - Implements a "Rule N" Monte Carlo significance test in parallel or serial.
+%   runRuleN - Generates a set of random explained variances for each
+%              "Rule N" Monte Carlo iterations
+%
+%   eofSigThreshold - Determines the explained variance significance
+%                     threshold based on "Rule N" explained variances.
+%   ruleNConvergence - Calculates significance thresholds for successive
+%                      Monte Carlo iterations to examine if Rule N
+%                      converges to a stable threshold.
+%
+%   eofrotation - Implements the rotation of significant eof modes.
+%
+% Misc. Functions:
+%   parseInputs - A general function to parse input flags and values.
+%   progressbar - Implements a progress bar. (I DID NOT WRITE THIS. PLEASE SEE "progressbar_license.txt")
 %   randNoiseSeries - Creates a random time series with specified noise properties 
-%   quickSVD     - Runs an SVD decomposition on a matrix.
 %
 % References:
 %   Deser, C., and M. L. Blackmon (1993), Surface climate variations over the
@@ -43,3 +53,6 @@
 % Acknowledgements:
 %   This work based on assignments and material from the course "Spatiotemporal Data Analysis",
 %   presented by Kevin Anchukaitis, University of Arizona, Fall 2016.
+%
+%   "progressbar.m" by Steve Hoelzer. Please see "progressbar_license.txt"
+%   for details.

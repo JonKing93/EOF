@@ -1,15 +1,13 @@
 function[scaSignals] = scaleSignals(signals, eigVals)
 %% Scales signals to the standard deviation of the standardized data.
 %
-% [sigScaled] = scaleSignals(signals, eigVals)
+% [scaSignals] = scaleSignals(signals, eigVals)
 %
 % ----- Inputs -----
 %
 % signals: a set of signals from an EOF analysis. Each column is one signal
 %
-% eigVals: A matrix containing the associated eigenvalues for each set of
-%   signals Each column contains the eigenvalues for one set of signals. The
-%   eigenvalues SHOULD NOT be normalized.
+% eigVals: A matrix containing the associated eigenvalues for each signal.
 %
 %
 % ----- Outputs -----

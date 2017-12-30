@@ -1,20 +1,14 @@
-function[f] = eofsignificance( s )
-%% Makes a significance plot for the percent explained variance of data and
-% Monte Carlo eigenvectors.
+function[ax] = eofsignificance( s )
+%% Plots the results of the Rule N significance test against EOF explained variances.
 %
-% [ax] = EOF_Sig_Plot(EOF)
-% Makes a significance plot with all the eigenvectors. Returns the
-% axis handle for the plot.
-%
-% [ax] = EOF_Sig_Plot(EOF, nEigs)
-% Makes a significance plot with a user specified number of eigenvectors.
+% [ax] = eofsignificance(s)
+% Plots EOF explained variances against the Rule N explained variance
+% significance threshold to test for EOF significance.
 %
 %
 % ----- Inputs -----
 %
-% EOF: The output of the EOF_Analysis function
-%
-% nEigs: The number of eignevectors to show in the plot.
+% s: The output structure from EOF_Analysis.
 %
 %
 % ----- Outputs -----
@@ -33,7 +27,7 @@ if ~isfield(s, 'sigExpVar') || ~isfield(s, 'expVar') || ~isfield(s, 'p') || ~isf
 end    
 
 % Initialize a figure
-f = figure();
+figure();
 hold on;
 
 % Plot the significance threshold line

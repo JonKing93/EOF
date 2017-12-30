@@ -1,7 +1,12 @@
 function[varargout] = parseInputs( inArgs, flags, defaults, switches )
-%% Parses inputs for string flag - value input pairs and for boolean string switches.
+%% Parses inputs for (string-flag, value) input pairs and for boolean string switches.
 %
-% inArgs: typically, varargin for a function calla
+% [values] = parseInputs( inArgs, flags, defaults, switches )
+%
+%
+% ----- Inputs -----
+%
+% inArgs: typically, varargin{:} for a function calla
 %
 % flags: All the possible string flags
 %
@@ -10,6 +15,16 @@ function[varargout] = parseInputs( inArgs, flags, defaults, switches )
 % switches: A cell of allowed strings for string switches, OR a 'b' character for 
 %           boolean string switches, OR an empty cell if neither of these
 %           options is applicable.
+%
+%
+% ----- Outputs -----
+%
+% values: The values for each string flag in order of flag input.
+%
+%
+% ----- Author -----
+%
+% Jonathan King, 2017, University of Arizona, jonking93@email.arizona.edu
 
 % Make sure everything is formatted correctly
 errorCheck(flags, defaults, switches);

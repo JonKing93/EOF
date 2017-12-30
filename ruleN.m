@@ -1,7 +1,7 @@
 function[randExpVar] = ruleN(Data, matrix, MC, noise, varargin)
 %% Runs a Rule N significance test on a data matrix and its eigenvalues.
 %
-% [randExpVar] = ruleN(Data, MC, noise, p)
+% [randExpVar] = ruleN(Data, matrix, MC, noise)
 % Runs a Rule N significance test using MC iterations. Tests for
 % significance <= p against white Gaussian, or red AR(1) noise. Records
 % Monte Carlo convergence data.
@@ -9,7 +9,7 @@ function[randExpVar] = ruleN(Data, matrix, MC, noise, varargin)
 % ruleN(..., 'parallel')
 % To speed up runtime, runs the Monte Carlo process in parallel using 
 % MATLAB's default settings. If the Distributed Computing Toolbox is not 
-% licensed, defaults to serial computing. 
+% licensed, reverts to serial computing. 
 %
 % ruleN(..., 'showProgress')
 % Displays a progress bar showing the progress through the Monte Carlo 
@@ -38,9 +38,9 @@ function[randExpVar] = ruleN(Data, matrix, MC, noise, varargin)
 %
 % MC: The number of Monte Carlo iterations to perform
 %
-% noiseType: 
-%   'white':    white noise
-%   'red':      lag-1 autocorrelated red noise with Gaussian white noise.
+% noise: A flag for the noise type
+%   'white':    white Gaussian noise (mean = 0, variance = 1)
+%   'red':      AR(1) red noise with added Gaussian white noise.
 %
 %            
 % ----- Outputs -----

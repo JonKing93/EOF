@@ -1,22 +1,12 @@
 function[ax] = eofloadings(s)
-%% Plots the loadings of significant EOF modes and rotated modes
+%% Plots the loadings of significant EOF modes and rotated modes.
 %
 % [ax] = eofloadings(s)
 % Plots the loadings for all significant and rotated modes.
 %
 % ----- Inputs -----
 %
-% EOF: the structure from an EOF_Analysis
-%
-% names: A string array of the names of each of the Data elements in the 
-%       order they are given in EOF_Analysis.
-%
-% rotType: a flag to use rotated vs unrotated modes
-%   'rot' OR 'rotated': Use the rotated modes
-%   'unrot' OR 'unrotated: Use the unrotated modes
-%
-% iEOF: An array containing the indices of the desired EOFS
-%       (e.g. iEOF = [1 2 5] will plot the first, second, and fifth EOF loadings)
+% s: The output structure from an EOF_Analysis
 %
 %
 % ----- Outputs -----
