@@ -26,14 +26,6 @@ if ~isfield(s, 'MCsigExpVar') || ~isfield(s, 'MCtrue_p')
     return;
 end
 
-% Plot the true confidence threshold
-figure();
-plot(s.MCtrue_p)
-xlabel('Number of Monte Carlo Iterations');
-ylabel('True Significance Level of Significance Threshold.');
-title('True Significance Level at Significance Thresholds for Monte Carlo Iterations ')
-ax = gca;
-
 % Plot the significant eigenvalues for each iteration
 figure()
 plot(zscore(s.MCsigExpVar));
@@ -41,5 +33,13 @@ title('Significance Threshold for Standaradized Random Explained Variances');
 xlabel('Number of Monte Carlo Iterations');
 ylabel('Standardized Explained Variance Significance Threshold');
 ax = [ax; gca];
+
+% Plot the true confidence threshold
+figure();
+plot(s.MCtrue_p)
+xlabel('Number of Monte Carlo Iterations');
+ylabel('True Significance Level of Significance Threshold.');
+title('True Significance Level at Significance Thresholds for Monte Carlo Iterations ')
+ax = gca;
 
 end
