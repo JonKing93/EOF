@@ -155,7 +155,9 @@ function[s] = EOF_Analysis(Data, varargin)
 %
 %   true_p: The actual significance level of the Rule N test. (Depending on
 %   the number of Monte Carlo iterations, the significance level of the
-%   Rule N test may be slightly higher than the user-specified value.
+%   Rule N test may be slightly higher than the user-specified value). 
+%   ***NOTE: To ensure that   p = true_p,  choose values of p and MC such 
+%   that p*MC is an integer. Equivalently, MC must be a multiple of 1/p ***
 %
 %   nSig: The number of leading eof modes that pass the Rule N significance test.
 %
@@ -234,12 +236,12 @@ end
 if ~isnan(nRotate) && nRotate > 1
     % Perform the rotation
     [s.rotModes, s.rotEigvals, s.rotExpVar, s.rotSignals] = ...
-        eofrotation( s.modes(:,1:nRotate), s.eigvals(1:nRotate), s.A, rotType );
+        eofrotation( s.modes(:,1:nRotate), s.eigvals(1:nRotate), s.A, rotType, s.expVar(1:nRotate) );
 end
     
 % Add metadata for the analysis
-s.metadata = [{'matrix';'MC';'noiseType';'p';'pcaArgs';'Rotated Modes';'Rotation Type'},...
-    {matrix; ruleNArgs{1}; ruleNArgs{2}; s.p; pcaArgs; nRotate; rotType}];
+s.metadata = [{'matrix';'MC';'noiseType';'pcaArgs';'Rotated Modes';'Rotation Type'},...
+    {matrix; ruleNArgs{1}; ruleNArgs{2}; pcaArgs; nRotate; rotType}];
 
 % Plot the output if desired
 if plotting

@@ -8,7 +8,10 @@
 % Main Function:
 %   EOF_Analysis  - Performs a full EOF Analysis of a data set. Uses a
 %                   Rule N significance test and performs a Varimax rotation
-%                   of significant modes.   
+%                   of significant modes.  
+%
+%   eof_demo - Runs the default settings on some example data. Comments on
+%              the output plots.
 %
 % Figure Functions:
 %   eofsignificance - Plots the results of the Rule N significance test,

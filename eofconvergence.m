@@ -32,7 +32,10 @@ plot(zscore(s.MCsigExpVar));
 title('Significance Threshold for Standaradized Random Explained Variances');
 xlabel('Number of Monte Carlo Iterations');
 ylabel('Standardized Explained Variance Significance Threshold');
-ax = [ax; gca];
+if isfield(s, 'varNames')
+    legend(s.varNames);
+end
+ax = gca; 
 
 % Plot the true confidence threshold
 figure();
@@ -40,6 +43,6 @@ plot(s.MCtrue_p)
 xlabel('Number of Monte Carlo Iterations');
 ylabel('True Significance Level of Significance Threshold.');
 title('True Significance Level at Significance Thresholds for Monte Carlo Iterations ')
-ax = gca;
+ax = [ax; gca];
 
 end

@@ -1,4 +1,4 @@
-function[rotModes, rotEigvals, rotExpVar, rotSignals, scaledRotSignals] = eofrotation(modes, eigvals, A, rotType)
+function[rotModes, rotEigvals, rotExpVar, rotSignals, scaledRotSignals] = eofrotation(modes, eigvals, A, rotType, expVar)
 %% Performs the EOF rotation and calculates associated values.
 %
 % [rotModes, rotEigvals, rotExpVar, rotSignals, scaledRotSignals] = eofrotation(modes, eigvals, A, rotType)
@@ -42,7 +42,7 @@ function[rotModes, rotEigvals, rotExpVar, rotSignals, scaledRotSignals] = eofrot
 rotEigvals = diag( diag(eigvals) * rotMatrix );
 
 % Get the explained variance of each rotated mode
-rotExpVar = (rotEigvals / sum(rotEigvals)) * sum(eigvals);
+rotExpVar = (rotEigvals / sum(rotEigvals)) * sum(expVar);
 
 % Get the rotated signals
 rotSignals = A * rotModes;

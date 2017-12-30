@@ -38,7 +38,7 @@ stem( s.expVar );
     
 % Make everything look nice.
 title(sprintf('Significance of EOF modes\r\nThe first %0.f modes are significant',s.nSig));
-legend( sprintf('Significance Threshold, p < %1.2f', s.p), 'Explained Variance');
+legend( sprintf('Significance Threshold, p < %0.2f', s.p), 'Explained Variance');
 xlabel('EOF Mode (decreasing rank order)');
 ylabel('Explained Variance');
 xs = get(gca, 'XLim');
