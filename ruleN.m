@@ -67,7 +67,7 @@ end
 % Run Rule N in parallel...
 if parallel
     fprintf('Activating parallel pool. This may take a few minutes...');
-    pool = parpool;
+    pool = gcp;
     fprintf('Activation complete.');
     nWorkers = pool.nWorkers;
     parfor k = 1:MC

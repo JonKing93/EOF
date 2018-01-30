@@ -75,6 +75,6 @@ s = EOF_Analysis( data, 'varNames', varNames, 'showProgress');
 % Figures 6 and 7 show the modes after rotating modes 1 and 2. Here, there
 % there is very little change from the unrotated modes. For the purposes of
 % this demo, our data series are constructed using random Gaussian noise
-% and should be roughly orthogonal. For analyses with data series that are
+% and should be approximately orthogonal. For analyses with data series that are
 % not already orthogonal, the rotated modes can be significantly different
 % from their unrotated counterparts.
