@@ -128,9 +128,10 @@ function[s] = EOF_Analysis(Data, varargin)
 %          matrix. They record how strongly each data vector is associated
 %          with each EOF signal.
 %
-%   signals: The signal for each EOF mode. Each column contains a signal.Signals are the imprint of each
-%       mode on the original data series, also known as scores or EOF 
-%       time series. Each column is one signal.
+%   signals: The signal for each EOF mode. Each column contains a signal.
+%            Signals are the imprint of each mode on the original data 
+%            series, also known as scores, PCs, or EOF time series. Each 
+%            column is one signal.
 %
 %   eigVals: A vector with the eigenvalues of the analysis matrix sorted in
 %            descending order. Each eigenvalue corresponds to the strength
@@ -140,8 +141,8 @@ function[s] = EOF_Analysis(Data, varargin)
 %           normalized eigenvalues.
 %
 %   scaledSignals: The signals scaled to the analysis data matrix. Allows
-%                  for direct comparison of signals with the original
-%                  standardized/centered/raw data series.
+%        for direct comparison of signals with the original
+%        standardized/centered/raw data series.
 %
 %   randEigvals: The set of random, normalized eigenvalues generated during
 %       the Rule N significance test. Each row contains the eigenvalues
@@ -156,7 +157,7 @@ function[s] = EOF_Analysis(Data, varargin)
 %   true_p: The actual significance level of the Rule N test. (Depending on
 %   the number of Monte Carlo iterations, the significance level of the
 %   Rule N test may be slightly higher than the user-specified value). 
-%   ***NOTE: To ensure that   p = true_p,  choose values of p and MC such 
+%   *** NOTE: To ensure that   p = true_p,  choose values of p and MC such 
 %   that p*MC is an integer. Equivalently, MC must be a multiple of 1/p ***
 %
 %   nSig: The number of leading eof modes that pass the Rule N significance test.

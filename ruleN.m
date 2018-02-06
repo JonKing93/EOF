@@ -45,7 +45,7 @@ function[randExpVar] = ruleN(Data, matrix, MC, noise, varargin)
 %            
 % ----- Outputs -----
 %
-% randExpVar: A set of random explained variances.
+% randExpVar: The set of random explained variances.
 %
 %
 % ----- Written By -----
@@ -77,7 +77,7 @@ end
 if estimateRuntime
     startTime = tic;
 end
-randExpVar(1,:) = ruleNStep(MC, noise, Data, matrix, pcaArgs, showProgress);
+randExpVar(1,:) = ruleNStep(noise, Data, matrix, pcaArgs);
 if estimateRuntime
     time = toc(startTime);
     time = time*MC/nWorkers;
