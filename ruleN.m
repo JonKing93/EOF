@@ -59,24 +59,48 @@ function[randExpVar] = ruleN(Data, matrix, MC, noise, varargin)
 [~, nCols] = size(Data);
 randExpVar = NaN(MC,nCols);
 
-% Initialize the progress bar if displaying
-if showProgress
-    progressbar(0);
-end
-
-% Run Rule N in parallel...
+% Initialize the parallel pool if computing in parallel
+nWorkers = 1;
 if parallel
     fprintf('Activating parallel pool. This may take a few minutes...');
     pool = gcp;
     fprintf('Activation complete.');
     nWorkers = pool.nWorkers;
-    parfor k = 1:MC
-        randExpVar(k,:) = runRuleN(k, MC, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, nWorkers);
+end
+
+% Initialize the progress bar if displaying
+if showProgress
+    progressbar(0);
+end
+
+% Run the first iteration. Estimate runtime if desired.
+if estimateRuntime
+    startTime = tic;
+end
+randExpVar(1,:) = ruleNStep(MC, noise, Data, matrix, pcaArgs, showProgress);
+if estimateRuntime
+    time = toc(startTime);
+    time = time*MC/nWorkers;
+    h = time / 360;
+    m = mod(time,360)/60;
+    s = mod(time,60);
+    fprintf('Estimated runtime: %0.f hour(s), %0.f minute(s), %0.f seconds \r\n',h,m,s);
+end
+
+% Run Rule N...
+if parallel          % In parallel
+    parfor k = 2:MC
+        randExpVar(k,:) = ruleNStep(noise, Data, matrix, pcaArgs);
     end
-% ...or run in serial
-else
-    for k = 1:MC
-        randExpVar(k,:) = runRuleN(k, MC, noise, Data, matrix, pcaArgs, estimateRuntime, showProgress, 1);
+    
+else                 % In serial
+    for k = 2:MC
+        randExpVar(k,:) = ruleNStep(noise, Data, matrix, pcaArgs);
+        
+        % Update the progress bar if displaying
+        if showProgress
+            progressbar(k/MC);
+        end
     end
 end
 
@@ -84,6 +108,7 @@ end
 
 %%%%% Helper Functions %%%%%
 function[parallel, showProgress, estimateRuntime, pcaArgs] = setup( Data, matrix, MC, noise, varargin )
+% This does some initial error checking and setup for Rule N
 
 % Parse the inputs
 [parallel, showProgress, estimateRuntime, pcaArgs] = parseInputs( varargin,...
@@ -123,3 +148,21 @@ if parallel && showProgress
 end
 
 end
+
+function[randExpVar] = ruleNStep(noise, Data, matrix, pcaArgs)
+% This runs a single iteration of the Monte Carlo Rule N process
+
+% Create a random matrix with the desired noise properties, scaled to data standard deviation.
+g = randNoiseSeries(noise, Data);
+    
+% Get the analysis matrix
+if strcmp(matrix, 'corr')
+    g = zscore(g);
+elseif strcmp(matrix, 'cov')
+    g = detrend(g, 'constant');
+end
+    
+% Run a pca (eof analysis) on the random matrix and get explained variance
+[~,~,~,~, randExpVar] = pca(g, pcaArgs{:});
+
+end   
