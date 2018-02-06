@@ -80,7 +80,7 @@ function[s] = EOF_Analysis(Data, varargin)
 % the user and proceeds in serial.
 %
 % [s] = EOF_Analysis(..., 'noConvergeTest')
-% A flag to block the test for Monte Carlo convergence. This may modestly
+% A flag to block the test for Monte Carlo convergence. This may slightly
 % improve runtime for very large significance tests.
 %
 %
