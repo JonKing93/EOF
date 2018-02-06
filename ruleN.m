@@ -65,7 +65,7 @@ if parallel
     fprintf('Activating parallel pool. This may take a few minutes...');
     pool = gcp;
     fprintf('Activation complete.');
-    nWorkers = pool.nWorkers;
+    nWorkers = pool.NumWorkers;
 end
 
 % Initialize the progress bar if displaying
