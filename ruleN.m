@@ -62,7 +62,7 @@ randExpVar = NaN(MC,nCols);
 % Initialize the parallel pool if computing in parallel
 nWorkers = 1;
 if parallel
-    fprintf('Activating parallel pool. This may take a few minutes...');
+    fprintf( sprintf('Activating parallel pool. This may take a few minutes... \r\n') );
     pool = gcp;
     fprintf('Activation complete.');
     nWorkers = pool.NumWorkers;
