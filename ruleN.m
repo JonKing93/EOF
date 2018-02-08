@@ -63,7 +63,6 @@ randExpVar = NaN(MC,nCols);
 nWorkers = 1;
 if parallel
     pool = gcp;
-    fprintf('Activation complete.');
     nWorkers = pool.NumWorkers;
 end
 
