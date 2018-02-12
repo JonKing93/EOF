@@ -40,7 +40,8 @@
 % Misc. Functions:
 %   parseInputs - A general function to parse input flags and values.
 %   progressbar - Implements a progress bar. (I DID NOT WRITE THIS. PLEASE SEE "progressbar_license.txt")
-%   randNoiseSeries - Creates a random time series with specified noise properties 
+%   randNoiseSeries - Creates a random time series with specified noise properties
+%   mcthreshold - Gets the value of a Monte Carlo process at a particular significance level threshold
 %
 % References:
 %   Deser, C., and M. L. Blackmon (1993), Surface climate variations over the
